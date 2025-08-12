@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PressCanvas - Where words find their canvas</title>
+    <meta name="description" content="PressCanvas is your space to write, refine, and share stories that matter — beautifully.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Sans+Pro:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="icon" href="assets/favicon.ico">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'serif': ['Playfair Display', 'serif'],
+                        'sans': ['Source Sans Pro', 'sans-serif'],
+                    },
+                    colors: {
+                        'primary': '#7c3aed',
+                        'accent': '#8b5cf6',
+                        'neutral-dark': '#374151',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white text-neutral-dark font-sans leading-relaxed">
+    <!-- Header -->
+    <header class="border-b border-gray-100 bg-white/95 backdrop-blur-sm sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-6 py-4">
+            <nav class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <img src="assets/logo.svg" alt="PressCanvas" class="w-8 h-8">
+                    <h1 class="font-serif font-bold text-2xl text-primary">PressCanvas</h1>
+                </div>
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#" class="text-neutral-dark hover:text-primary transition-colors">Stories</a>
+                    <a href="#" class="text-neutral-dark hover:text-primary transition-colors">Topics</a>
+                    <a href="#" class="text-neutral-dark hover:text-primary transition-colors">About</a>
+                    <div class="flex items-center space-x-4">
+                        <input type="search" placeholder="Search stories..." class="px-4 py-2 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                        <a href="editor.html" class="bg-primary text-white px-6 py-2 rounded-full hover:bg-accent transition-colors font-medium">Start Writing</a>
+                    </div>
+                </div>
+                <button class="md:hidden p-2">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-16 px-6">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="font-serif text-5xl md:text-7xl font-bold text-neutral-dark mb-6 leading-tight">
+                Where words find their <span class="text-primary italic">canvas</span>
+            </h2>
+            <p class="text-xl md:text-2xl text-gray-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+                PressCanvas is your space to write, refine, and share stories that matter — beautifully.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="editor.html" class="bg-primary text-white px-8 py-4 rounded-full hover:bg-accent transition-colors font-medium text-lg">Start Writing</a>
+                <a href="#stories" class="text-primary border-2 border-primary px-8 py-4 rounded-full hover:bg-primary hover:text-white transition-colors font-medium text-lg">Explore Stories</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Post -->
+    <section class="py-12 px-6 bg-gradient-to-r from-primary/5 to-accent/5">
+        <div class="max-w-6xl mx-auto">
+            <div class="text-center mb-8">
+                <span class="text-primary font-medium text-sm uppercase tracking-wider">Featured Story</span>
+            </div>
+            <div id="featured-post" class="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <!-- Featured post will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Filter & Search -->
+    <section class="py-8 px-6 border-b border-gray-100" id="stories">
+        <div class="max-w-6xl mx-auto">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex flex-wrap gap-2">
+                    <button class="filter-tag active px-4 py-2 rounded-full text-sm font-medium bg-primary text-white" data-tag="all">All Stories</button>
+                    <button class="filter-tag px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-neutral-dark hover:bg-primary hover:text-white transition-colors" data-tag="technology">Technology</button>
+                    <button class="filter-tag px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-neutral-dark hover:bg-primary hover:text-white transition-colors" data-tag="design">Design</button>
+                    <button class="filter-tag px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-neutral-dark hover:bg-primary hover:text-white transition-colors" data-tag="writing">Writing</button>
+                </div>
+                <div class="flex items-center gap-4">
+                    <select class="px-4 py-2 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+                        <option>Latest First</option>
+                        <option>Oldest First</option>
+                        <option>Most Popular</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Posts Grid -->
+    <main class="py-12 px-6">
+        <div class="max-w-6xl mx-auto">
+            <div id="posts-container" class="grid gap-8 md:gap-12">
+                <!-- Posts will be loaded here -->
+            </div>
+            
+            <!-- Pagination -->
+            <div class="flex justify-center mt-16">
+                <div class="flex items-center space-x-2">
+                    <button class="px-4 py-2 text-neutral-dark hover:text-primary transition-colors" disabled>Previous</button>
+                    <button class="px-4 py-2 bg-primary text-white rounded-full">1</button>
+                    <button class="px-4 py-2 text-neutral-dark hover:text-primary transition-colors">2</button>
+                    <button class="px-4 py-2 text-neutral-dark hover:text-primary transition-colors">3</button>
+                    <button class="px-4 py-2 text-neutral-dark hover:text-primary transition-colors">Next</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 py-12 px-6 mt-16">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="md:col-span-2">
+                    <div class="flex items-center space-x-2 mb-4">
+                        <img src="assets/logo.svg" alt="PressCanvas" class="w-8 h-8">
+                        <h3 class="font-serif font-bold text-2xl text-primary">PressCanvas</h3>
+                    </div>
+                    <p class="text-gray-600 mb-4 max-w-md">A beautiful platform for writers to create, share, and discover meaningful stories.</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-primary transition-colors">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/></svg>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-neutral-dark mb-4">Platform</h4>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><a href="editor.html" class="hover:text-primary transition-colors">Write</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Discover</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Community</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-neutral-dark mb-4">Support</h4>
+                    <ul class="space-y-2 text-gray-600">
+                        <li><a href="#" class="hover:text-primary transition-colors">Help Center</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Guidelines</a></li>
+                        <li><a href="#" class="hover:text-primary transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-200 mt-8 pt-8 text-center text-gray-500 text-sm">
+                <p>&copy; 2024 PressCanvas. Made with ❤️ for writers everywhere.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Load posts data and render
+        let allPosts = [];
+        let currentPage = 1;
+        const postsPerPage = 6;
+
+        async function loadPosts() {
+            try {
+                const response = await fetch('data/posts.json');
+                allPosts = await response.json();
+                renderFeaturedPost();
+                renderPosts();
+            } catch (error) {
+                console.error('Error loading posts:', error);
+                // Fallback content
+                document.getElementById('posts-container').innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-gray-500">No posts found. <a href="editor.html" class="text-primary hover:underline">Write the first one!</a></p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderFeaturedPost() {
+            if (allPosts.length === 0) return;
+            
+            const featured = allPosts[0];
+            const featuredContainer = document.getElementById('featured-post');
+            
+            featuredContainer.innerHTML = `
+                <div class="md:flex">
+                    <div class="md:w-1/2 p-8 md:p-12">
+                        <div class="mb-4">
+                            <span class="text-primary text-sm font-medium">${featured.date}</span>
+                        </div>
+                        <h3 class="font-serif text-3xl md:text-4xl font-bold text-neutral-dark mb-4 leading-tight">
+                            <a href="post.html?slug=${featured.slug}" class="hover:text-primary transition-colors">${featured.title}</a>
+                        </h3>
+                        <p class="text-gray-600 text-lg mb-6 leading-relaxed">${featured.excerpt}</p>
+                        <a href="post.html?slug=${featured.slug}" class="inline-flex items-center text-primary font-medium hover:underline">
+                            Read Story
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                        </a>
+                    </div>
+                    <div class="md:w-1/2 bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center p-12">
+                        <img src="${featured.cover || '/placeholder.svg?height=300&width=400'}" alt="${featured.title}" class="rounded-lg shadow-lg max-w-full h-auto">
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPosts(filteredPosts = null) {
+            const posts = filteredPosts || allPosts.slice(1); // Skip featured post
+            const startIndex = (currentPage - 1) * postsPerPage;
+            const endIndex = startIndex + postsPerPage;
+            const paginatedPosts = posts.slice(startIndex, endIndex);
+            
+            const container = document.getElementById('posts-container');
+            
+            if (paginatedPosts.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12">
+                        <p class="text-gray-500">No posts found.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = paginatedPosts.map((post, index) => `
+                <article class="group ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} md:flex items-center gap-12 py-8 border-b border-gray-100 last:border-b-0">
+                    <div class="md:w-1/2 mb-6 md:mb-0">
+                        <img src="${post.cover || '/placeholder.svg?height=250&width=400' + post.title}" alt="${post.title}" class="w-full h-64 object-cover rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
+                    </div>
+                    <div class="md:w-1/2">
+                        <div class="mb-3">
+                            <span class="text-primary text-sm font-medium">${post.date}</span>
+                        </div>
+                        <h3 class="font-serif text-2xl md:text-3xl font-bold text-neutral-dark mb-4 leading-tight">
+                            <a href="post.html?slug=${post.slug}" class="hover:text-primary transition-colors">${post.title}</a>
+                        </h3>
+                        <p class="text-gray-600 mb-4 leading-relaxed">${post.excerpt}</p>
+                        <a href="post.html?slug=${post.slug}" class="inline-flex items-center text-primary font-medium hover:underline">
+                            Read More
+                            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                            </svg>
+                        </a>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        // Filter functionality
+        document.querySelectorAll('.filter-tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                // Update active state
+                document.querySelectorAll('.filter-tag').forEach(t => {
+                    t.classList.remove('active', 'bg-primary', 'text-white');
+                    t.classList.add('bg-gray-100', 'text-neutral-dark');
+                });
+                this.classList.add('active', 'bg-primary', 'text-white');
+                this.classList.remove('bg-gray-100', 'text-neutral-dark');
+                
+                // Filter posts
+                const filterValue = this.dataset.tag;
+                if (filterValue === 'all') {
+                    renderPosts();
+                } else {
+                    const filtered = allPosts.filter(post => 
+                        post.tags && post.tags.includes(filterValue)
+                    );
+                    renderPosts(filtered);
+                }
+                currentPage = 1;
+            });
+        });
+
+        // Search functionality
+        document.querySelector('input[type="search"]').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            if (searchTerm === '') {
+                renderPosts();
+            } else {
+                const filtered = allPosts.filter(post => 
+                    post.title.toLowerCase().includes(searchTerm) ||
+                    post.excerpt.toLowerCase().includes(searchTerm)
+                );
+                renderPosts(filtered);
+            }
+            currentPage = 1;
+        });
+
+        // Load posts on page load
+        loadPosts();
+    </script>
+</body>
+</html>
