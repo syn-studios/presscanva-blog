@@ -27,6 +27,18 @@
             }
         }
     </script>
+    <style>
+        html {
+            scroll-behavior: smooth;
+        }
+        .mobile-menu {
+            transform: translateX(100%);
+            transition: transform 0.3s ease-in-out;
+        }
+        .mobile-menu.open {
+            transform: translateX(0);
+        }
+    </style>
 </head>
 <body class="bg-white text-neutral-dark font-sans leading-relaxed">
     <!-- Header -->
@@ -34,24 +46,56 @@
         <div class="max-w-6xl mx-auto px-6 py-4">
             <nav class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
-                    <img src="assets/logo.svg" alt="PressCanvas" class="w-8 h-8">
+                    <img src="assets/logo.png" alt="PressCanvas" class="w-8 h-8">
                     <h1 class="font-serif font-bold text-2xl text-primary">PressCanvas</h1>
                 </div>
                 <div class="hidden md:flex items-center space-x-8">
-                    <a href="#" class="text-neutral-dark hover:text-primary transition-colors">Stories</a>
+                    <a href="#stories" class="text-neutral-dark hover:text-primary transition-colors">Stories</a>
                     <a href="#" class="text-neutral-dark hover:text-primary transition-colors">Topics</a>
                     <a href="#" class="text-neutral-dark hover:text-primary transition-colors">About</a>
                     <div class="flex items-center space-x-4">
-                        <input type="search" placeholder="Search stories..." class="px-4 py-2 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+                        <div class="relative">
+                            <input type="search" id="search-input" placeholder="Search stories..." class="px-4 py-2 pr-10 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary w-64">
+                            <button id="clear-search" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 hidden">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
                         <a href="editor.html" class="bg-primary text-white px-6 py-2 rounded-full hover:bg-accent transition-colors font-medium">Start Writing</a>
                     </div>
                 </div>
-                <button class="md:hidden p-2">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button id="mobile-menu-toggle" class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                    <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                    <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </nav>
+            
+            <div id="mobile-menu" class="mobile-menu fixed top-0 right-0 h-full w-80 bg-white shadow-xl z-50 md:hidden">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-8">
+                        <h2 class="font-serif text-xl font-bold text-primary">Menu</h2>
+                        <button id="mobile-menu-close" class="p-2 hover:bg-gray-100 rounded-lg">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <nav class="space-y-6">
+                        <a href="#stories" class="block text-lg text-neutral-dark hover:text-primary transition-colors">Stories</a>
+                        <a href="#" class="block text-lg text-neutral-dark hover:text-primary transition-colors">Topics</a>
+                        <a href="#" class="block text-lg text-neutral-dark hover:text-primary transition-colors">About</a>
+                        <div class="pt-4 border-t border-gray-200">
+                            <input type="search" id="mobile-search" placeholder="Search stories..." class="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary mb-4">
+                            <a href="editor.html" class="block w-full bg-primary text-white text-center px-6 py-3 rounded-lg hover:bg-accent transition-colors font-medium">Start Writing</a>
+                        </div>
+                    </nav>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -94,11 +138,12 @@
                     <button class="filter-tag px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-neutral-dark hover:bg-primary hover:text-white transition-colors" data-tag="writing">Writing</button>
                 </div>
                 <div class="flex items-center gap-4">
-                    <select class="px-4 py-2 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
-                        <option>Latest First</option>
-                        <option>Oldest First</option>
-                        <option>Most Popular</option>
+                    <select id="sort-select" class="px-4 py-2 border border-gray-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+                        <option value="latest">Latest First</option>
+                        <option value="oldest">Oldest First</option>
+                        <option value="title">Title A-Z</option>
                     </select>
+                    <span id="results-count" class="text-sm text-gray-500"></span>
                 </div>
             </div>
         </div>
@@ -113,12 +158,8 @@
             
             <!-- Pagination -->
             <div class="flex justify-center mt-16">
-                <div class="flex items-center space-x-2">
-                    <button class="px-4 py-2 text-neutral-dark hover:text-primary transition-colors" disabled>Previous</button>
-                    <button class="px-4 py-2 bg-primary text-white rounded-full">1</button>
-                    <button class="px-4 py-2 text-neutral-dark hover:text-primary transition-colors">2</button>
-                    <button class="px-4 py-2 text-neutral-dark hover:text-primary transition-colors">3</button>
-                    <button class="px-4 py-2 text-neutral-dark hover:text-primary transition-colors">Next</button>
+                <div id="pagination" class="flex items-center space-x-2">
+                    <!-- Pagination will be generated by JavaScript -->
                 </div>
             </div>
         </div>
@@ -130,7 +171,7 @@
             <div class="grid md:grid-cols-4 gap-8">
                 <div class="md:col-span-2">
                     <div class="flex items-center space-x-2 mb-4">
-                        <img src="assets/logo.svg" alt="PressCanvas" class="w-8 h-8">
+                        <img src="assets/logo.png" alt="PressCanvas" class="w-8 h-8">
                         <h3 class="font-serif font-bold text-2xl text-primary">PressCanvas</h3>
                     </div>
                     <p class="text-gray-600 mb-4 max-w-md">A beautiful platform for writers to create, share, and discover meaningful stories.</p>
@@ -169,18 +210,45 @@
     <script>
         // Load posts data and render
         let allPosts = [];
+        let filteredPosts = [];
         let currentPage = 1;
         const postsPerPage = 6;
+        let currentFilter = 'all';
+        let currentSort = 'latest';
+
+        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuClose = document.getElementById('mobile-menu-close');
+        const menuIcon = document.getElementById('menu-icon');
+        const closeIcon = document.getElementById('close-icon');
+
+        function toggleMobileMenu() {
+            mobileMenu.classList.toggle('open');
+            menuIcon.classList.toggle('hidden');
+            closeIcon.classList.toggle('hidden');
+            document.body.classList.toggle('overflow-hidden');
+        }
+
+        mobileMenuToggle.addEventListener('click', toggleMobileMenu);
+        mobileMenuClose.addEventListener('click', toggleMobileMenu);
+
+        // Close mobile menu when clicking outside
+        mobileMenu.addEventListener('click', (e) => {
+            if (e.target === mobileMenu) {
+                toggleMobileMenu();
+            }
+        });
 
         async function loadPosts() {
             try {
                 const response = await fetch('data/posts.json');
                 allPosts = await response.json();
+                filteredPosts = [...allPosts];
                 renderFeaturedPost();
                 renderPosts();
+                updateResultsCount();
             } catch (error) {
                 console.error('Error loading posts:', error);
-                // Fallback content
                 document.getElementById('posts-container').innerHTML = `
                     <div class="text-center py-12">
                         <p class="text-gray-500">No posts found. <a href="editor.html" class="text-primary hover:underline">Write the first one!</a></p>
@@ -199,7 +267,7 @@
                 <div class="md:flex">
                     <div class="md:w-1/2 p-8 md:p-12">
                         <div class="mb-4">
-                            <span class="text-primary text-sm font-medium">${featured.date}</span>
+                            <span class="text-primary text-sm font-medium">${formatDate(featured.date)}</span>
                         </div>
                         <h3 class="font-serif text-3xl md:text-4xl font-bold text-neutral-dark mb-4 leading-tight">
                             <a href="post.html?slug=${featured.slug}" class="hover:text-primary transition-colors">${featured.title}</a>
@@ -213,37 +281,42 @@
                         </a>
                     </div>
                     <div class="md:w-1/2 bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center p-12">
-                        <img src="${featured.cover || '/placeholder.svg?height=300&width=400'}" alt="${featured.title}" class="rounded-lg shadow-lg max-w-full h-auto">
+                        <img src="${featured.cover || '/placeholder.svg?height=300&width=400&text=' + encodeURIComponent(featured.title)}" alt="${featured.title}" class="rounded-lg shadow-lg max-w-full h-auto">
                     </div>
                 </div>
             `;
         }
 
-        function renderPosts(filteredPosts = null) {
-            const posts = filteredPosts || allPosts.slice(1); // Skip featured post
+        function renderPosts() {
             const startIndex = (currentPage - 1) * postsPerPage;
             const endIndex = startIndex + postsPerPage;
-            const paginatedPosts = posts.slice(startIndex, endIndex);
+            const postsToShow = filteredPosts.slice(1); // Skip featured post
+            const paginatedPosts = postsToShow.slice(startIndex, endIndex);
             
             const container = document.getElementById('posts-container');
             
             if (paginatedPosts.length === 0) {
                 container.innerHTML = `
                     <div class="text-center py-12">
-                        <p class="text-gray-500">No posts found.</p>
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        <p class="text-gray-500 mb-4">No posts found matching your criteria.</p>
+                        <a href="editor.html" class="text-primary hover:underline">Write the first one!</a>
                     </div>
                 `;
+                renderPagination(0);
                 return;
             }
             
             container.innerHTML = paginatedPosts.map((post, index) => `
                 <article class="group ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} md:flex items-center gap-12 py-8 border-b border-gray-100 last:border-b-0">
                     <div class="md:w-1/2 mb-6 md:mb-0">
-                        <img src="${post.cover || '/placeholder.svg?height=250&width=400' + post.title}" alt="${post.title}" class="w-full h-64 object-cover rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
+                        <img src="${post.cover || '/placeholder.svg?height=250&width=400&text=' + encodeURIComponent(post.title)}" alt="${post.title}" class="w-full h-64 object-cover rounded-lg shadow-sm group-hover:shadow-md transition-shadow">
                     </div>
                     <div class="md:w-1/2">
                         <div class="mb-3">
-                            <span class="text-primary text-sm font-medium">${post.date}</span>
+                            <span class="text-primary text-sm font-medium">${formatDate(post.date)}</span>
                         </div>
                         <h3 class="font-serif text-2xl md:text-3xl font-bold text-neutral-dark mb-4 leading-tight">
                             <a href="post.html?slug=${post.slug}" class="hover:text-primary transition-colors">${post.title}</a>
@@ -258,9 +331,58 @@
                     </div>
                 </article>
             `).join('');
+            
+            renderPagination(postsToShow.length);
         }
 
-        // Filter functionality
+        function renderPagination(totalPosts) {
+            const totalPages = Math.ceil(totalPosts / postsPerPage);
+            const paginationContainer = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = '';
+            
+            // Previous button
+            paginationHTML += `
+                <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} 
+                        class="px-4 py-2 text-neutral-dark hover:text-primary transition-colors ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : ''}">
+                    Previous
+                </button>
+            `;
+            
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    paginationHTML += `<button class="px-4 py-2 bg-primary text-white rounded-full">${i}</button>`;
+                } else {
+                    paginationHTML += `<button onclick="changePage(${i})" class="px-4 py-2 text-neutral-dark hover:text-primary transition-colors">${i}</button>`;
+                }
+            }
+            
+            // Next button
+            paginationHTML += `
+                <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''} 
+                        class="px-4 py-2 text-neutral-dark hover:text-primary transition-colors ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : ''}">
+                    Next
+                </button>
+            `;
+            
+            paginationContainer.innerHTML = paginationHTML;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil((filteredPosts.length - 1) / postsPerPage);
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            renderPosts();
+            document.getElementById('stories').scrollIntoView({ behavior: 'smooth' });
+        }
+
         document.querySelectorAll('.filter-tag').forEach(tag => {
             tag.addEventListener('click', function() {
                 // Update active state
@@ -272,36 +394,109 @@
                 this.classList.remove('bg-gray-100', 'text-neutral-dark');
                 
                 // Filter posts
-                const filterValue = this.dataset.tag;
-                if (filterValue === 'all') {
-                    renderPosts();
-                } else {
-                    const filtered = allPosts.filter(post => 
-                        post.tags && post.tags.includes(filterValue)
-                    );
-                    renderPosts(filtered);
-                }
+                currentFilter = this.dataset.tag;
+                applyFilters();
                 currentPage = 1;
             });
         });
 
-        // Search functionality
-        document.querySelector('input[type="search"]').addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            if (searchTerm === '') {
-                renderPosts();
-            } else {
-                const filtered = allPosts.filter(post => 
-                    post.title.toLowerCase().includes(searchTerm) ||
-                    post.excerpt.toLowerCase().includes(searchTerm)
-                );
-                renderPosts(filtered);
+        function setupSearch() {
+            const searchInput = document.getElementById('search-input');
+            const mobileSearch = document.getElementById('mobile-search');
+            const clearButton = document.getElementById('clear-search');
+            
+            function handleSearch(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                
+                // Show/hide clear button
+                if (searchTerm) {
+                    clearButton.classList.remove('hidden');
+                } else {
+                    clearButton.classList.add('hidden');
+                }
+                
+                // Sync search inputs
+                if (e.target === searchInput) {
+                    mobileSearch.value = searchTerm;
+                } else {
+                    searchInput.value = searchTerm;
+                }
+                
+                applyFilters();
+                currentPage = 1;
             }
+            
+            searchInput.addEventListener('input', handleSearch);
+            mobileSearch.addEventListener('input', handleSearch);
+            
+            clearButton.addEventListener('click', () => {
+                searchInput.value = '';
+                mobileSearch.value = '';
+                clearButton.classList.add('hidden');
+                applyFilters();
+                currentPage = 1;
+            });
+        }
+
+        document.getElementById('sort-select').addEventListener('change', function() {
+            currentSort = this.value;
+            applyFilters();
             currentPage = 1;
         });
 
-        // Load posts on page load
+        function applyFilters() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            
+            // Start with all posts
+            filteredPosts = [...allPosts];
+            
+            // Apply tag filter
+            if (currentFilter !== 'all') {
+                filteredPosts = filteredPosts.filter(post => 
+                    post.tags && post.tags.includes(currentFilter)
+                );
+            }
+            
+            // Apply search filter
+            if (searchTerm) {
+                filteredPosts = filteredPosts.filter(post => 
+                    post.title.toLowerCase().includes(searchTerm) ||
+                    post.excerpt.toLowerCase().includes(searchTerm) ||
+                    (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
+                );
+            }
+            
+            // Apply sorting
+            filteredPosts.sort((a, b) => {
+                switch (currentSort) {
+                    case 'oldest':
+                        return new Date(a.date) - new Date(b.date);
+                    case 'title':
+                        return a.title.localeCompare(b.title);
+                    case 'latest':
+                    default:
+                        return new Date(b.date) - new Date(a.date);
+                }
+            });
+            
+            renderPosts();
+            updateResultsCount();
+        }
+
+        function updateResultsCount() {
+            const count = filteredPosts.length - 1; // Subtract featured post
+            const countElement = document.getElementById('results-count');
+            countElement.textContent = `${count} ${count === 1 ? 'story' : 'stories'}`;
+        }
+
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        }
+
+        // Initialize everything
         loadPosts();
+        setupSearch();
     </script>
 </body>
 </html>
