@@ -5,7 +5,7 @@
     "date": "2024-01-15",
     "excerpt": "Exploring how modern writers are crafting narratives that resonate in our interconnected world, blending traditional storytelling with digital innovation.",
     "author": "Elena Rodriguez",
-    "cover": "/placeholder.svg?height=400&width=600",
+    "cover": "assets/post-1.png",
     "tags": ["writing", "technology", "storytelling"]
   },
   {
@@ -14,7 +14,7 @@
     "date": "2024-01-12",
     "excerpt": "In an age of digital noise, discover how thoughtful writing can create genuine human connections and foster meaningful conversations.",
     "author": "Marcus Chen",
-    "cover": "/placeholder.svg?height=400&width=600",
+    "cover": "assets/post-2.png",
     "tags": ["writing", "community", "authenticity"]
   },
   {
@@ -23,7 +23,7 @@
     "date": "2024-01-10",
     "excerpt": "Why readers are returning to in-depth articles and essays, and how writers can craft compelling long-form content that captivates modern audiences.",
     "author": "Sarah Thompson",
-    "cover": "/placeholder.svg?height=400&width=600",
+    "cover": "assets/post-3.png",
     "tags": ["writing", "content", "publishing"]
   }
 ]
