@@ -266,37 +266,15 @@
             }
             
             try {
-                // Load post metadata
-                const postsResponse = await fetch('data/posts.json');
-                const posts = await postsResponse.json();
-                currentPost = posts.find(post => post.slug === slug);
+                const response = await fetch('data/posts-content.json');
+                const data = await response.json();
+                currentPost = data.posts.find(post => post.slug === slug);
                 
                 if (!currentPost) {
                     throw new Error('Post not found');
                 }
                 
-                let markdownContent = '';
-                let contentLoaded = false;
-                
-                // Try multiple methods to load content
-                contentLoaded = await tryLoadMarkdownContent(slug);
-                
-                if (contentLoaded.success) {
-                    markdownContent = contentLoaded.content;
-                    console.log('Successfully loaded markdown content');
-                } else {
-                    // Use embedded content as fallback
-                    if (EMBEDDED_POSTS[slug]) {
-                        markdownContent = EMBEDDED_POSTS[slug];
-                        console.log('Using embedded content for:', slug);
-                    } else {
-                        // Generate basic content from metadata
-                        markdownContent = generateFallbackContent(currentPost);
-                        console.log('Generated fallback content for:', slug);
-                    }
-                }
-                
-                const { frontmatter, content } = parseFrontmatter(markdownContent);
+                const content = currentPost.content;
                 
                 // Update page metadata
                 document.getElementById('post-title').textContent = `${currentPost.title} - PressCanvas`;
@@ -306,8 +284,8 @@
                 document.getElementById('post-date').textContent = formatDate(currentPost.date);
                 document.getElementById('article-title').textContent = currentPost.title;
                 document.getElementById('article-excerpt').textContent = currentPost.excerpt;
-                document.getElementById('post-author').textContent = frontmatter.author || currentPost.author || 'PressCanvas';
-                document.getElementById('footer-author').textContent = frontmatter.author || currentPost.author || 'PressCanvas';
+                document.getElementById('post-author').textContent = currentPost.author || 'PressCanvas';
+                document.getElementById('footer-author').textContent = currentPost.author || 'PressCanvas';
                 
                 // Calculate reading time
                 const readingTime = calculateReadingTime(content);
@@ -321,7 +299,7 @@
                 document.getElementById('article-content').innerHTML = htmlContent;
                 
                 // Load related posts
-                loadRelatedPosts(posts, currentPost);
+                loadRelatedPosts(data.posts, currentPost);
                 
                 // Update progress bar after content is loaded
                 setTimeout(updateProgressBar, 100);
@@ -336,136 +314,6 @@
                     </div>
                 `;
             }
-        }
-        
-        async function tryLoadMarkdownContent(slug) {
-            const methods = [
-                // Method 1: Standard fetch
-                () => fetch(`_posts/${slug}.md`),
-                // Method 2: No-cache fetch
-                () => fetch(`_posts/${slug}.md?t=${Date.now()}`, { cache: 'no-cache' }),
-                // Method 3: Different path
-                () => fetch(`./_posts/${slug}.md`),
-                // Method 4: Absolute path
-                () => fetch(`/${window.location.pathname.split('/')[1]}/_posts/${slug}.md`)
-            ];
-            
-            for (let i = 0; i < methods.length; i++) {
-                try {
-                    console.log(`Trying method ${i + 1} to load content...`);
-                    const response = await methods[i]();
-                    if (response.ok) {
-                        const content = await response.text();
-                        if (content.trim()) {
-                            return { success: true, content };
-                        }
-                    }
-                } catch (error) {
-                    console.warn(`Method ${i + 1} failed:`, error);
-                }
-            }
-            
-            return { success: false, content: null };
-        }
-        
-        function generateFallbackContent(post) {
-            return `---
-title: "${post.title}"
-date: "${post.date}"
-excerpt: "${post.excerpt}"
-author: "${post.author || 'PressCanvas'}"
-tags: ${JSON.stringify(post.tags || [])}
----
-
-${post.excerpt}
-
----
-
-**This post is currently being loaded...** 
-
-If you're seeing this message, it means the full content is being processed. When deployed to GitHub Pages, the complete article will be available.
-
-**Post Information:**
-- **Title:** ${post.title}
-- **Author:** ${post.author || 'PressCanvas'}
-- **Published:** ${post.date}
-- **Tags:** ${post.tags ? post.tags.join(', ') : 'None'}
-
-**Summary:** ${post.excerpt}
-
----
-
-*For the best reading experience, please visit this post when the site is fully deployed.*`;
-        }
-        
-        function parseFrontmatter(markdown) {
-            const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
-            const match = markdown.match(frontmatterRegex);
-            
-            if (!match) {
-                return { frontmatter: {}, content: markdown };
-            }
-            
-            const frontmatterText = match[1];
-            const content = match[2].trim();
-            const frontmatter = {};
-            
-            try {
-                // Parse YAML-like frontmatter with improved handling
-                const lines = frontmatterText.split('\n');
-                let currentKey = null;
-                let currentValue = '';
-                let inArray = false;
-                
-                for (let line of lines) {
-                    line = line.trim();
-                    if (!line) continue;
-                    
-                    if (line.startsWith('- ') && inArray) {
-                        // Array item
-                        if (Array.isArray(frontmatter[currentKey])) {
-                            frontmatter[currentKey].push(line.substring(2).replace(/^["']|["']$/g, ''));
-                        }
-                    } else if (line.includes(':')) {
-                        // Save previous key-value pair
-                        if (currentKey && !inArray) {
-                            frontmatter[currentKey] = currentValue.replace(/^["']|["']$/g, '');
-                        }
-                        
-                        // Parse new key-value pair
-                        const colonIndex = line.indexOf(':');
-                        currentKey = line.substring(0, colonIndex).trim();
-                        currentValue = line.substring(colonIndex + 1).trim();
-                        
-                        // Check if this is an array
-                        if (currentValue === '' || currentValue === '[]') {
-                            frontmatter[currentKey] = [];
-                            inArray = true;
-                        } else if (currentValue.startsWith('[') && currentValue.endsWith(']')) {
-                            // Inline array - handle JSON-style arrays
-                            try {
-                                frontmatter[currentKey] = JSON.parse(currentValue);
-                            } catch (e) {
-                                // Fallback to simple parsing
-                                const arrayContent = currentValue.slice(1, -1);
-                                frontmatter[currentKey] = arrayContent.split(',').map(item => item.trim().replace(/^["']|["']$/g, ''));
-                            }
-                            inArray = false;
-                        } else {
-                            inArray = false;
-                        }
-                    }
-                }
-                
-                // Save the last key-value pair
-                if (currentKey && !inArray) {
-                    frontmatter[currentKey] = currentValue.replace(/^["']|["']$/g, '');
-                }
-            } catch (error) {
-                console.warn('Error parsing frontmatter:', error);
-            }
-            
-            return { frontmatter, content };
         }
         
         // Format date
@@ -494,7 +342,7 @@ If you're seeing this message, it means the full content is being processed. Whe
             const container = document.getElementById('related-posts');
             container.innerHTML = related.map(post => `
                 <article class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-                    <img src="${post.cover || '/placeholder.svg?height=200&width=300&query=' + post.title}" alt="${post.title}" class="w-full h-48 object-cover">
+                    <img src="${post.cover || '/placeholder.svg?height=200&width=300&query=' + encodeURIComponent(post.title)}" alt="${post.title}" class="w-full h-48 object-cover">
                     <div class="p-6">
                         <div class="mb-2">
                             <span class="text-primary text-sm font-medium">${formatDate(post.date)}</span>
@@ -566,66 +414,6 @@ If you're seeing this message, it means the full content is being processed. Whe
         
         // Load post on page load
         loadPost();
-        
-        // Embedded post content as fallback for CORS issues
-        const EMBEDDED_POSTS = {
-            'talken-the-future-of-privacy-and-communication-brought-together': `---
-title: "Talken, The future of privacy and communication brought together"
-slug: "talken-the-future-of-privacy-and-communication-brought-together"
-date: "2025-08-12"
-excerpt: "Discover how Talken is revolutionizing digital communication by combining cutting-edge privacy technology with seamless user experience, creating a new paradigm for secure, decentralized messaging."
-author: "Shashwat Gupta"
-cover: ""
-tags: ["talken", "privacy", "communication", "decentralized", "technology"]
----
-
-In an era where digital privacy has become a luxury rather than a fundamental right, Talken emerges as a beacon of hope for those seeking truly secure communication. This innovative platform represents more than just another messaging app—it's a revolutionary approach to how we think about privacy, data ownership, and digital freedom.
-
-## The Privacy Crisis We Face
-
-Every day, billions of messages traverse the digital landscape, carrying our most intimate thoughts, business secrets, and personal moments. Yet, most of these communications pass through centralized servers owned by corporations that have built their empires on data harvesting. The recent surge in data breaches, government surveillance programs, and corporate misuse of personal information has awakened a global consciousness about the urgent need for truly private communication tools.
-
-Traditional messaging platforms, despite their claims of "end-to-end encryption," still maintain significant control over user data, metadata, and communication patterns. They know who you talk to, when you talk to them, and can infer a surprising amount about your life from these digital breadcrumbs.
-
-## Enter Talken: A New Paradigm
-
-Talken doesn't just promise privacy—it delivers it through a fundamentally different architecture. Built on decentralized principles, Talken ensures that no single entity, including Talken itself, can access your communications or compromise your privacy.
-
-### Key Features That Set Talken Apart
-
-**True Decentralization**: Unlike traditional messaging apps that rely on centralized servers, Talken operates on a distributed network where your data never sits on a single point of failure or control.
-
-**Zero-Knowledge Architecture**: Talken implements zero-knowledge protocols, meaning the platform can facilitate communication without ever knowing the content, participants, or patterns of your conversations.
-
-**User-Controlled Data**: Your data belongs to you, period. Talken gives users complete control over their information, with the ability to truly delete messages and maintain anonymity.
-
-**Seamless User Experience**: Despite its sophisticated underlying technology, Talken maintains an intuitive, user-friendly interface that doesn't require technical expertise to use effectively.
-
-## The Technology Behind the Magic
-
-Talken leverages cutting-edge cryptographic techniques and blockchain technology to create its secure communication environment. The platform uses advanced encryption methods that go beyond traditional approaches, implementing:
-
-- **Multi-layer encryption** that protects data at rest and in transit
-- **Distributed key management** that eliminates single points of failure
-- **Anonymous routing** that obscures communication patterns
-- **Self-destructing messages** with cryptographic guarantees
-
-## Why This Matters Now
-
-The timing of Talken's emergence couldn't be more critical. As governments worldwide implement increasingly invasive surveillance measures and corporations continue to monetize personal data, the need for truly private communication tools has never been more urgent.
-
-Recent events have shown us that privacy is not just about hiding wrongdoing—it's about preserving the fundamental human right to private thought and communication. Journalists, activists, business leaders, and everyday citizens all deserve the ability to communicate without fear of surveillance or data exploitation.
-
-## The Future of Communication
-
-Talken represents more than just a technological advancement—it's a philosophical statement about the future we want to build. A future where privacy is the default, not an afterthought. Where users control their data, not corporations. Where communication is truly free and secure.
-
-As we move forward into an increasingly connected world, platforms like Talken will play a crucial role in preserving the digital rights and freedoms that are essential to a healthy, democratic society.
-
-The revolution in private communication has begun, and Talken is leading the charge. The question isn't whether we need better privacy tools—it's whether we're ready to embrace them and reclaim control over our digital lives.
-
-*The future of communication is private, decentralized, and user-controlled. The future is Talken.*`
-        };
     </script>
 </body>
 </html>

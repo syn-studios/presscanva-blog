@@ -259,7 +259,7 @@ You can use Markdown formatting:
         <!-- Instructions -->
         <div class="mt-16 bg-white rounded-2xl shadow-sm p-8 fade-toolbar">
             <h3 class="font-serif text-2xl font-bold text-neutral-dark mb-6">How to Publish Your Story</h3>
-            <div class="grid md:grid-cols-3 gap-8">
+            <div class="grid md:grid-cols-4 gap-6">
                 <div class="text-center">
                     <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span class="text-primary font-bold text-xl">1</span>
@@ -278,8 +278,25 @@ You can use Markdown formatting:
                     <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
                         <span class="text-primary font-bold text-xl">3</span>
                     </div>
-                    <h4 class="font-semibold text-neutral-dark mb-2">Update & Deploy</h4>
-                    <p class="text-gray-600 text-sm">Add your post to <code class="bg-gray-100 px-1 rounded">data/posts.json</code> and your story will appear on the site!</p>
+                    <h4 class="font-semibold text-neutral-dark mb-2">Update JSON Files</h4>
+                    <p class="text-gray-600 text-sm">Add your post metadata to <code class="bg-gray-100 px-1 rounded">data/posts.json</code> and full content to <code class="bg-gray-100 px-1 rounded">data/posts-content.json</code>.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-primary font-bold text-xl">4</span>
+                    </div>
+                    <h4 class="font-semibold text-neutral-dark mb-2">Deploy & Share</h4>
+                    <p class="text-gray-600 text-sm">Your story will appear on the site automatically! Share it with the world.</p>
+                </div>
+            </div>
+            
+            <!-- Added detailed instructions for JSON updates -->
+            <div class="mt-8 p-6 bg-gray-50 rounded-lg">
+                <h4 class="font-semibold text-neutral-dark mb-3">📝 JSON Update Guide</h4>
+                <div class="space-y-3 text-sm text-gray-600">
+                    <p><strong>For posts.json:</strong> Add basic metadata (title, slug, date, excerpt, author, cover, tags)</p>
+                    <p><strong>For posts-content.json:</strong> Add the same metadata plus the full "content" field with your markdown text</p>
+                    <p><strong>Pro tip:</strong> The content field should contain your raw markdown without the frontmatter (---)</p>
                 </div>
             </div>
         </div>
