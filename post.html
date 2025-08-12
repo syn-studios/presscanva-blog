@@ -143,7 +143,7 @@
             <nav class="flex items-center justify-between">
                 <div class="flex items-center space-x-2">
                     <a href="index.html" class="flex items-center space-x-2">
-                        <img src="assets/logo.svg" alt="PressCanvas" class="w-8 h-8">
+                        <img src="assets/logo.png" alt="PressCanvas" class="w-8 h-8">
                         <h1 class="font-serif font-bold text-2xl text-primary">PressCanvas</h1>
                     </a>
                 </div>
@@ -275,9 +275,34 @@
                     throw new Error('Post not found');
                 }
                 
-                // Load markdown content
-                const markdownResponse = await fetch(`_posts/${slug}.md`);
-                const markdownContent = await markdownResponse.text();
+                let markdownContent = '';
+                try {
+                    const markdownResponse = await fetch(`_posts/${slug}.md`);
+                    if (!markdownResponse.ok) {
+                        throw new Error(`HTTP error! status: ${markdownResponse.status}`);
+                    }
+                    markdownContent = await markdownResponse.text();
+                } catch (fetchError) {
+                    console.warn('Could not fetch markdown file, using fallback content:', fetchError);
+                    // Fallback: create content from post metadata
+                    markdownContent = `---
+title: "${currentPost.title}"
+date: "${currentPost.date}"
+excerpt: "${currentPost.excerpt}"
+author: "PressCanvas"
+---
+
+${currentPost.excerpt}
+
+*This post content could not be loaded from the markdown file. This might happen when running the site locally due to CORS restrictions. When deployed to GitHub Pages, the full content will be available.*
+
+To see the full content, make sure:
+1. The markdown file exists at \`_posts/${slug}.md\`
+2. The site is served from a web server (not opened directly as a file)
+3. The markdown file has proper frontmatter and content
+
+**Excerpt:** ${currentPost.excerpt}`;
+                }
                 
                 // Parse frontmatter and content
                 const { frontmatter, content } = parseFrontmatter(markdownContent);
