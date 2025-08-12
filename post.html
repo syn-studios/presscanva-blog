@@ -276,35 +276,66 @@
                 }
                 
                 let markdownContent = '';
+                let contentLoaded = false;
+                
                 try {
                     const markdownResponse = await fetch(`_posts/${slug}.md`);
-                    if (!markdownResponse.ok) {
+                    if (markdownResponse.ok) {
+                        markdownContent = await markdownResponse.text();
+                        contentLoaded = true;
+                        console.log('Successfully loaded markdown content');
+                    } else {
                         throw new Error(`HTTP error! status: ${markdownResponse.status}`);
                     }
-                    markdownContent = await markdownResponse.text();
                 } catch (fetchError) {
-                    console.warn('Could not fetch markdown file, using fallback content:', fetchError);
-                    // Fallback: create content from post metadata
+                    console.warn('Could not fetch markdown file:', fetchError);
+                    
+                    try {
+                        // Try loading without cache
+                        const response = await fetch(`_posts/${slug}.md?t=${Date.now()}`, {
+                            cache: 'no-cache'
+                        });
+                        if (response.ok) {
+                            markdownContent = await response.text();
+                            contentLoaded = true;
+                            console.log('Successfully loaded markdown content (no-cache)');
+                        }
+                    } catch (altError) {
+                        console.warn('Alternative loading method also failed:', altError);
+                    }
+                }
+                
+                if (!contentLoaded || !markdownContent.trim()) {
                     markdownContent = `---
 title: "${currentPost.title}"
 date: "${currentPost.date}"
 excerpt: "${currentPost.excerpt}"
-author: "PressCanvas"
+author: "${currentPost.author || 'PressCanvas'}"
 ---
 
 ${currentPost.excerpt}
 
-*This post content could not be loaded from the markdown file. This might happen when running the site locally due to CORS restrictions. When deployed to GitHub Pages, the full content will be available.*
+---
 
-To see the full content, make sure:
-1. The markdown file exists at \`_posts/${slug}.md\`
-2. The site is served from a web server (not opened directly as a file)
-3. The markdown file has proper frontmatter and content
+**Note:** The full content of this post could not be loaded. This typically happens when:
+
+1. Running the site locally without a web server
+2. CORS restrictions in the browser
+3. The markdown file path is incorrect
+
+**To fix this:**
+- Deploy to GitHub Pages for full functionality
+- Or serve the site using a local web server (like \`python -m http.server\`)
+
+**Post Details:**
+- **Title:** ${currentPost.title}
+- **Author:** ${currentPost.author || 'PressCanvas'}
+- **Date:** ${currentPost.date}
+- **Tags:** ${currentPost.tags ? currentPost.tags.join(', ') : 'None'}
 
 **Excerpt:** ${currentPost.excerpt}`;
                 }
                 
-                // Parse frontmatter and content
                 const { frontmatter, content } = parseFrontmatter(markdownContent);
                 
                 // Update page metadata
@@ -315,19 +346,25 @@ To see the full content, make sure:
                 document.getElementById('post-date').textContent = formatDate(currentPost.date);
                 document.getElementById('article-title').textContent = currentPost.title;
                 document.getElementById('article-excerpt').textContent = currentPost.excerpt;
-                document.getElementById('post-author').textContent = frontmatter.author || 'PressCanvas';
-                document.getElementById('footer-author').textContent = frontmatter.author || 'PressCanvas';
+                document.getElementById('post-author').textContent = frontmatter.author || currentPost.author || 'PressCanvas';
+                document.getElementById('footer-author').textContent = frontmatter.author || currentPost.author || 'PressCanvas';
                 
                 // Calculate reading time
                 const readingTime = calculateReadingTime(content);
                 document.getElementById('reading-time').textContent = `${readingTime} min read`;
                 
-                // Render markdown content
-                const htmlContent = marked.parse(content);
+                let htmlContent = marked.parse(content);
+                
+                // Process links to make them open in new tabs if external
+                htmlContent = htmlContent.replace(/<a href="(https?:\/\/[^"]+)"/g, '<a href="$1" target="_blank" rel="noopener noreferrer"');
+                
                 document.getElementById('article-content').innerHTML = htmlContent;
                 
                 // Load related posts
                 loadRelatedPosts(posts, currentPost);
+                
+                // Update progress bar after content is loaded
+                setTimeout(updateProgressBar, 100);
                 
             } catch (error) {
                 console.error('Error loading post:', error);
@@ -341,7 +378,6 @@ To see the full content, make sure:
             }
         }
         
-        // Parse frontmatter from markdown
         function parseFrontmatter(markdown) {
             const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/;
             const match = markdown.match(frontmatterRegex);
@@ -351,15 +387,54 @@ To see the full content, make sure:
             }
             
             const frontmatterText = match[1];
-            const content = match[2];
+            const content = match[2].trim();
             const frontmatter = {};
             
-            frontmatterText.split('\n').forEach(line => {
-                const [key, ...valueParts] = line.split(':');
-                if (key && valueParts.length) {
-                    frontmatter[key.trim()] = valueParts.join(':').trim().replace(/^["']|["']$/g, '');
+            // Parse YAML-like frontmatter
+            const lines = frontmatterText.split('\n');
+            let currentKey = null;
+            let currentValue = '';
+            let inArray = false;
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                
+                if (line.startsWith('- ') && inArray) {
+                    // Array item
+                    if (Array.isArray(frontmatter[currentKey])) {
+                        frontmatter[currentKey].push(line.substring(2).replace(/^["']|["']$/g, ''));
+                    }
+                } else if (line.includes(':')) {
+                    // Save previous key-value pair
+                    if (currentKey && !inArray) {
+                        frontmatter[currentKey] = currentValue.replace(/^["']|["']$/g, '');
+                    }
+                    
+                    // Parse new key-value pair
+                    const colonIndex = line.indexOf(':');
+                    currentKey = line.substring(0, colonIndex).trim();
+                    currentValue = line.substring(colonIndex + 1).trim();
+                    
+                    // Check if this is an array
+                    if (currentValue === '' || currentValue === '[]') {
+                        frontmatter[currentKey] = [];
+                        inArray = true;
+                    } else if (currentValue.startsWith('[') && currentValue.endsWith(']')) {
+                        // Inline array
+                        const arrayContent = currentValue.slice(1, -1);
+                        frontmatter[currentKey] = arrayContent.split(',').map(item => item.trim().replace(/^["']|["']$/g, ''));
+                        inArray = false;
+                    } else {
+                        inArray = false;
+                    }
                 }
-            });
+            }
+            
+            // Save the last key-value pair
+            if (currentKey && !inArray) {
+                frontmatter[currentKey] = currentValue.replace(/^["']|["']$/g, '');
+            }
             
             return { frontmatter, content };
         }
