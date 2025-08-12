@@ -195,3 +195,437 @@ You can use Markdown formatting:
 - Another point
 
 [Links](https://example.com)
+
+![Images](image-url.jpg)"
+                              class="w-full px-4 py-3 border border-gray-200 rounded-lg editor-textarea"></textarea>
+                    <!-- Word and Character Count -->
+                    <div class="flex justify-between items-center mt-2 text-xs text-gray-500">
+                        <span id="word-count">0 words</span>
+                        <span id="char-count">0 characters</span>
+                    </div>
+                </div>
+                
+                <!-- Editor Actions -->
+                <div class="flex flex-col sm:flex-row gap-4 mt-6">
+                    <button id="generate-markdown" class="flex-1 bg-primary text-white px-6 py-3 rounded-lg hover:bg-accent transition-colors font-medium">
+                        Generate Markdown File
+                    </button>
+                    <button id="clear-editor" class="px-6 py-3 border border-gray-200 text-neutral-dark rounded-lg hover:bg-gray-50 transition-colors">
+                        Clear All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Preview/Output Panel -->
+            <div class="bg-white rounded-2xl shadow-sm p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-serif text-2xl font-bold text-neutral-dark">Preview</h3>
+                    <div class="flex space-x-2">
+                        <button id="preview-tab" class="px-4 py-2 bg-primary text-white rounded-lg text-sm">Preview</button>
+                        <button id="markdown-tab" class="px-4 py-2 bg-gray-100 text-neutral-dark rounded-lg text-sm">Markdown</button>
+                    </div>
+                </div>
+                
+                <!-- Preview Content -->
+                <div id="preview-content" class="markdown-preview border border-gray-200 rounded-lg p-6 min-h-96 overflow-auto">
+                    <div class="text-center text-gray-500 py-12">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                        </svg>
+                        <p>Start writing to see your preview...</p>
+                    </div>
+                </div>
+                
+                <!-- Generated Markdown Output -->
+                <div id="markdown-output" class="hidden">
+                    <div class="mb-4">
+                        <p class="text-sm text-gray-600 mb-2">Copy this content and save it as <code class="bg-gray-100 px-2 py-1 rounded text-xs">_posts/your-slug.md</code> in your repository:</p>
+                    </div>
+                    <textarea id="generated-markdown" readonly 
+                              class="w-full h-96 px-4 py-3 border border-gray-200 rounded-lg bg-gray-50 font-mono text-sm resize-none"></textarea>
+                    <div class="flex gap-4 mt-4">
+                        <button id="copy-markdown" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-accent transition-colors text-sm">
+                            Copy to Clipboard
+                        </button>
+                        <button id="download-markdown" class="border border-gray-200 text-neutral-dark px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm">
+                            Download File
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="mt-16 bg-white rounded-2xl shadow-sm p-8 fade-toolbar">
+            <h3 class="font-serif text-2xl font-bold text-neutral-dark mb-6">How to Publish Your Story</h3>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-primary font-bold text-xl">1</span>
+                    </div>
+                    <h4 class="font-semibold text-neutral-dark mb-2">Write & Generate</h4>
+                    <p class="text-gray-600 text-sm">Fill in your story details and click "Generate Markdown File" to create the formatted content.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-primary font-bold text-xl">2</span>
+                    </div>
+                    <h4 class="font-semibold text-neutral-dark mb-2">Copy & Save</h4>
+                    <p class="text-gray-600 text-sm">Copy the generated markdown and save it as <code class="bg-gray-100 px-1 rounded">_posts/your-slug.md</code> in your GitHub repository.</p>
+                </div>
+                <div class="text-center">
+                    <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-primary font-bold text-xl">3</span>
+                    </div>
+                    <h4 class="font-semibold text-neutral-dark mb-2">Update & Deploy</h4>
+                    <p class="text-gray-600 text-sm">Add your post to <code class="bg-gray-100 px-1 rounded">data/posts.json</code> and your story will appear on the site!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-save Notification -->
+        <div id="autosave-notification" class="fixed bottom-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg transform translate-y-full transition-transform duration-300">
+            <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>Draft saved automatically</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Initialize editor
+        let isWritingMode = false;
+        let currentView = 'preview';
+        let autoSaveTimeout;
+        
+        // Set today's date as default
+        document.getElementById('post-date').value = new Date().toISOString().split('T')[0];
+        
+        document.getElementById('post-title').addEventListener('input', function() {
+            const title = this.value;
+            const slug = title
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .replace(/\s+/g, '-')
+                .replace(/-+/g, '-')
+                .replace(/^-+|-+$/g, '')
+                .trim();
+            document.getElementById('post-slug').value = slug;
+            updatePreview();
+            scheduleAutoSave();
+        });
+        
+        function updateWordCount() {
+            const content = document.getElementById('post-content').value;
+            const words = content.trim() ? content.trim().split(/\s+/).length : 0;
+            const chars = content.length;
+            
+            document.getElementById('word-count').textContent = `${words} word${words !== 1 ? 's' : ''}`;
+            document.getElementById('char-count').textContent = `${chars} character${chars !== 1 ? 's' : ''}`;
+        }
+        
+        // Update preview and word count on content change
+        ['post-title', 'post-content', 'post-excerpt'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                updatePreview();
+                updateWordCount();
+                scheduleAutoSave();
+            });
+        });
+        
+        document.getElementById('focus-mode').addEventListener('click', function() {
+            isWritingMode = !isWritingMode;
+            document.body.classList.toggle('writing-mode', isWritingMode);
+            this.textContent = isWritingMode ? 'Exit Focus' : 'Focus Mode';
+            
+            if (isWritingMode) {
+                document.getElementById('post-content').focus();
+            }
+        });
+        
+        // Tab switching
+        document.getElementById('preview-tab').addEventListener('click', () => switchTab('preview'));
+        document.getElementById('markdown-tab').addEventListener('click', () => switchTab('markdown'));
+        
+        function switchTab(tab) {
+            currentView = tab;
+            
+            // Update tab buttons
+            document.getElementById('preview-tab').className = tab === 'preview' 
+                ? 'px-4 py-2 bg-primary text-white rounded-lg text-sm'
+                : 'px-4 py-2 bg-gray-100 text-neutral-dark rounded-lg text-sm';
+            document.getElementById('markdown-tab').className = tab === 'markdown'
+                ? 'px-4 py-2 bg-primary text-white rounded-lg text-sm'
+                : 'px-4 py-2 bg-gray-100 text-neutral-dark rounded-lg text-sm';
+            
+            // Show/hide content
+            document.getElementById('preview-content').classList.toggle('hidden', tab !== 'preview');
+            document.getElementById('markdown-output').classList.toggle('hidden', tab !== 'markdown');
+        }
+        
+        function updatePreview() {
+            const title = document.getElementById('post-title').value;
+            const content = document.getElementById('post-content').value;
+            const excerpt = document.getElementById('post-excerpt').value;
+            
+            if (!title && !content && !excerpt) {
+                document.getElementById('preview-content').innerHTML = `
+                    <div class="text-center text-gray-500 py-12">
+                        <svg class="w-16 h-16 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                        </svg>
+                        <p>Start writing to see your preview...</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let previewHTML = '';
+            
+            if (title) {
+                previewHTML += `<h1 class="font-serif text-4xl font-bold text-neutral-dark mb-4">${title}</h1>`;
+            }
+            
+            if (excerpt) {
+                previewHTML += `<p class="text-xl text-gray-600 mb-8 italic border-l-4 border-primary pl-4">${excerpt}</p>`;
+            }
+            
+            if (content) {
+                try {
+                    previewHTML += marked.parse(content);
+                } catch (error) {
+                    previewHTML += `<p class="text-red-500">Error rendering markdown: ${error.message}</p>`;
+                }
+            }
+            
+            document.getElementById('preview-content').innerHTML = previewHTML;
+        }
+        
+        document.getElementById('generate-markdown').addEventListener('click', function() {
+            const title = document.getElementById('post-title').value || 'Untitled Story';
+            const slug = document.getElementById('post-slug').value || 'untitled-story';
+            const excerpt = document.getElementById('post-excerpt').value || '';
+            const author = document.getElementById('post-author').value || 'PressCanvas';
+            const date = document.getElementById('post-date').value || new Date().toISOString().split('T')[0];
+            const content = document.getElementById('post-content').value || '';
+            
+            // Basic validation
+            if (!title.trim()) {
+                alert('Please enter a title for your story.');
+                document.getElementById('post-title').focus();
+                return;
+            }
+            
+            if (!content.trim()) {
+                alert('Please write some content for your story.');
+                document.getElementById('post-content').focus();
+                return;
+            }
+            
+            // Generate tags from content (simple keyword extraction)
+            const tags = extractTags(content + ' ' + title + ' ' + excerpt);
+            
+            const frontmatter = `---
+title: "${title}"
+slug: "${slug}"
+date: "${date}"
+excerpt: "${excerpt}"
+author: "${author}"
+cover: ""
+tags: [${tags.map(tag => `"${tag}"`).join(', ')}]
+---
+
+${content}`;
+            
+            document.getElementById('generated-markdown').value = frontmatter;
+            switchTab('markdown');
+            
+            // Show success message
+            const originalText = this.textContent;
+            this.textContent = 'Generated!';
+            this.classList.add('bg-green-600');
+            setTimeout(() => {
+                this.textContent = originalText;
+                this.classList.remove('bg-green-600');
+            }, 2000);
+        });
+        
+        function extractTags(text) {
+            const commonWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those'];
+            
+            const words = text.toLowerCase()
+                .replace(/[^\w\s]/g, ' ')
+                .split(/\s+/)
+                .filter(word => word.length > 3 && !commonWords.includes(word));
+            
+            const wordCount = {};
+            words.forEach(word => {
+                wordCount[word] = (wordCount[word] || 0) + 1;
+            });
+            
+            return Object.entries(wordCount)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 5)
+                .map(([word]) => word);
+        }
+        
+        document.getElementById('copy-markdown').addEventListener('click', function() {
+            const textarea = document.getElementById('generated-markdown');
+            textarea.select();
+            document.execCommand('copy');
+            
+            const originalText = this.textContent;
+            this.textContent = 'Copied!';
+            this.classList.add('bg-green-600');
+            setTimeout(() => {
+                this.textContent = originalText;
+                this.classList.remove('bg-green-600');
+            }, 2000);
+        });
+        
+        // Download file
+        document.getElementById('download-markdown').addEventListener('click', function() {
+            const content = document.getElementById('generated-markdown').value;
+            const slug = document.getElementById('post-slug').value || 'untitled-story';
+            const blob = new Blob([content], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${slug}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+        
+        document.getElementById('clear-editor').addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear all content? This cannot be undone.')) {
+                document.getElementById('post-title').value = '';
+                document.getElementById('post-slug').value = '';
+                document.getElementById('post-excerpt').value = '';
+                document.getElementById('post-content').value = '';
+                document.getElementById('post-author').value = 'PressCanvas';
+                document.getElementById('post-date').value = new Date().toISOString().split('T')[0];
+                updatePreview();
+                updateWordCount();
+                localStorage.removeItem('presscanvas-draft');
+                showAutoSaveNotification('Draft cleared');
+            }
+        });
+        
+        function scheduleAutoSave() {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                autoSave();
+                showAutoSaveNotification();
+            }, 2000); // Save after 2 seconds of inactivity
+        }
+        
+        function autoSave() {
+            const data = {
+                title: document.getElementById('post-title').value,
+                slug: document.getElementById('post-slug').value,
+                excerpt: document.getElementById('post-excerpt').value,
+                author: document.getElementById('post-author').value,
+                date: document.getElementById('post-date').value,
+                content: document.getElementById('post-content').value,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('presscanvas-draft', JSON.stringify(data));
+        }
+        
+        function showAutoSaveNotification(message = 'Draft saved automatically') {
+            const notification = document.getElementById('autosave-notification');
+            notification.querySelector('span').textContent = message;
+            notification.classList.remove('translate-y-full');
+            
+            setTimeout(() => {
+                notification.classList.add('translate-y-full');
+            }, 3000);
+        }
+        
+        // Load auto-saved content
+        function loadAutoSave() {
+            const saved = localStorage.getItem('presscanvas-draft');
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    document.getElementById('post-title').value = data.title || '';
+                    document.getElementById('post-slug').value = data.slug || '';
+                    document.getElementById('post-excerpt').value = data.excerpt || '';
+                    document.getElementById('post-author').value = data.author || 'PressCanvas';
+                    document.getElementById('post-date').value = data.date || new Date().toISOString().split('T')[0];
+                    document.getElementById('post-content').value = data.content || '';
+                    updatePreview();
+                    updateWordCount();
+                    
+                    // Show notification about loaded draft
+                    if (data.timestamp) {
+                        const savedTime = new Date(data.timestamp).toLocaleString();
+                        showAutoSaveNotification(`Draft loaded from ${savedTime}`);
+                    }
+                } catch (error) {
+                    console.error('Error loading auto-saved draft:', error);
+                }
+            }
+        }
+        
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + S to save
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                autoSave();
+                showAutoSaveNotification('Draft saved manually');
+            }
+            
+            // Ctrl/Cmd + Enter to generate markdown
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                document.getElementById('generate-markdown').click();
+            }
+            
+            // Escape to exit focus mode
+            if (e.key === 'Escape' && isWritingMode) {
+                document.getElementById('focus-mode').click();
+            }
+        });
+        
+        // Save on input for all form fields
+        ['post-title', 'post-slug', 'post-excerpt', 'post-author', 'post-date', 'post-content'].forEach(id => {
+            document.getElementById(id).addEventListener('input', scheduleAutoSave);
+        });
+        
+        window.addEventListener('beforeunload', function(e) {
+            const hasContent = document.getElementById('post-title').value || 
+                              document.getElementById('post-content').value || 
+                              document.getElementById('post-excerpt').value;
+            
+            if (hasContent) {
+                autoSave(); // Save before leaving
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+        
+        // Initialize everything
+        loadAutoSave();
+        updateWordCount();
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add keyboard shortcuts info
+            const shortcutsInfo = document.createElement('div');
+            shortcutsInfo.className = 'fixed bottom-4 left-4 bg-gray-800 text-white text-xs p-3 rounded-lg opacity-75 hover:opacity-100 transition-opacity';
+            shortcutsInfo.innerHTML = `
+                <div class="font-semibold mb-1">Keyboard Shortcuts:</div>
+                <div>Ctrl/⌘ + S: Save draft</div>
+                <div>Ctrl/⌘ + Enter: Generate markdown</div>
+                <div>Escape: Exit focus mode</div>
+            `;
+            document.body.appendChild(shortcutsInfo);
+        });
+    </script>
+</body>
+</html>
